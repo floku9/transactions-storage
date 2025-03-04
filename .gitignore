@@ -1,0 +1,79 @@
+# macOS
+.DS_Store
+
+# Husky
+.huskyrc.json
+
+# Build output
+out
+coverage/
+build/
+dist/
+node_modules/
+python_files/lib/**
+python_files/get-pip.py
+
+# Log files
+log.log
+npm-debug.log
+debug*.log
+debugpy*.log
+pydevd*.log
+*.log
+
+# Cache files
+**/.vscode/.ropeproject/**
+**/testFiles/**/.cache/**
+.pytest_cache
+.nyc_output
+**/.mypy_cache/**
+**/.vscode-test/**
+**/.vscode-smoke/**
+.tmp/**
+python_files/tests/*/.data/.coverage*
+python_files/tests/*/.data/*/.coverage*
+src/testTestingRootWkspc/coverageWorkspace/.coverage
+
+# Python bytecode and virtual environments
+*.pyc
+__pycache__
+*.pyo
+*.pyd
+*.venv/
+*.env.*
+python-env-tools/**
+
+# Test and coverage results
+test-results*.xml
+xunit-test-results.xml
+cucumber-report.json
+coverage/
+*.noseids
+
+# Pre-commit hooks
+precommit.hook
+
+# VSCode
+.vscode/
+.vscode-test/
+*.vscode-test/
+
+# Environment variables
+.env
+envVars.txt
+*.env.*
+
+# Miscellaneous
+port.txt
+languageServer/
+languageServer.*/**
+bin/**
+obj/**
+debug_coverage*/**
+python-files/tests/**
+package.nls.*.json
+l10n/
+
+# Excluded files and directories
+!yarn.lock
+!build/
