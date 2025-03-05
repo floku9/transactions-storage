@@ -36,14 +36,13 @@ def test_add_to_celery(
     with patch.object(
         test_transactions_celery_service._celery, "send_task", return_value=Mock(id=mock_task_id)
     ) as mock_send_task:
-        # Выполнение метода
+
         result = test_transactions_celery_service.add_to_celery(test_transaction_dto)
 
-        # Проверка вызова send_task с правильными аргументами
         mock_send_task.assert_called_once_with(
-            celery_settings.CELERY_PROCESS_TRANSACTIONS_TASK_NAME,  # Замените на ваше имя задачи из настроек
+            celery_settings.CELERY_PROCESS_TRANSACTIONS_TASK_NAME,
             args=[i.model_dump() for i in test_transaction_dto],
-            queue=celery_settings.CELERY_QUEUE_NAME,  # Замените на вашу очередь из настроек
+            queue=celery_settings.CELERY_QUEUE_NAME,
         )
 
         # Проверка возвращаемого значения
