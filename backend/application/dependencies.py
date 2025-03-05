@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.logic.services.celery_inspector import CeleryInspectorService
-from backend.logic.services.transaction import TransactionsService
+from backend.logic.services.transaction import TransactionsCeleryService, TransactionsDBService
 from celery import Celery
 from db.setup import async_session_factory
 from settings import celery_settings, redis_settings
@@ -23,11 +23,14 @@ def get_celery_client():
     )
 
 
-def get_transactions_service(
-    celery_client: Annotated[Celery, Depends(get_celery_client)],
+def get_transactions_db_service(
     db_session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
-    return TransactionsService(celery_client=celery_client, db_session=db_session)
+    return TransactionsDBService(db_session=db_session)
+
+
+def get_transactions_celery_service(celery_client: Annotated[Celery, Depends(get_celery_client)]):
+    return TransactionsCeleryService(celery=celery_client)
 
 
 def get_celery_inspector_service(

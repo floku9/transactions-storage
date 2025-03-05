@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from backend.application.dto.transactions import AddTransactionDTO
 from backend.logic.services.celery_inspector import CeleryInspectorService
-from backend.logic.services.transaction import TransactionsService
+from backend.logic.services.transaction import TransactionsCeleryService, TransactionsDBService
 from celery import Celery
 from db.models import BalanceHistory, Base, Transaction
 
@@ -91,8 +91,13 @@ def mock_celery():
 
 
 @pytest.fixture
-def test_transactions_service(test_db_session, mock_celery):
-    return TransactionsService(db_session=test_db_session, celery_client=mock_celery)
+def test_transactions_db_service(test_db_session):
+    return TransactionsDBService(db_session=test_db_session)
+
+
+@pytest.fixture
+def test_transactions_celery_service(mock_celery):
+    return TransactionsCeleryService(celery=mock_celery)
 
 
 @pytest.fixture

@@ -1,16 +1,16 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.application.dto.transactions import AddTransactionDTO
+from backend.application.dto.transactions import AddTransactionDTO, GetTransactionDTO
 from celery import Celery
-from db.models import Transaction
+from db.models import Transaction, TransactionStatus
 from settings import celery_settings
 from utils.logging import logger
 
 
-class TransactionsService:
-    def __init__(self, db_session: AsyncSession, celery_client: Celery):
+class TransactionsDBService:
+    def __init__(self, db_session: AsyncSession):
         self._db_session = db_session
-        self._celery_client = celery_client
 
     async def add_to_db(self, transactions: list[AddTransactionDTO]) -> None:
         """
@@ -27,12 +27,28 @@ class TransactionsService:
             transaction_models: list[Transaction] = []
             for transaction_dto in transactions:
                 model = Transaction(**transaction_dto.model_dump())
+                model.status = TransactionStatus.NOT_SYNCHRONIZED
                 transaction_models.append(model)
 
             self._db_session.add_all(transaction_models)
             await self._db_session.flush()
             await self._db_session.commit()
         logger.info("Successfully added transactions to database")
+
+    async def get_many_by_id(self, transaction_ids: list[int]) -> list[GetTransactionDTO]:
+        """
+        Retrieves a list of transactions by their IDs from the database.
+        """
+        async with self._db_session.begin():
+            stmt = select(Transaction).where(Transaction.transaction_id.in_(transaction_ids))
+            result = await self._db_session.execute(stmt)
+            transactions = result.scalars().all()
+        return [GetTransactionDTO.model_validate(tr) for tr in transactions]
+
+
+class TransactionsCeleryService:
+    def __init__(self, celery: Celery):
+        self._celery = celery
 
     def add_to_celery(self, transactions: list[AddTransactionDTO]) -> str:
         """
@@ -45,7 +61,7 @@ class TransactionsService:
             celery_id (str): The ID of the Celery task that was created for
                 processing the transactions.
         """
-        task = self._celery_client.send_task(
+        task = self._celery.send_task(
             celery_settings.CELERY_PROCESS_TRANSACTIONS_TASK_NAME,
             args=[tr.model_dump() for tr in transactions],
             queue=celery_settings.CELERY_QUEUE_NAME,

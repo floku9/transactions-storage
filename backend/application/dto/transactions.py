@@ -13,3 +13,7 @@ class AddTransactionDTO(BaseDTO):
     ]
     customer_id: Annotated[int, Field(ge=0, example=1)]
     transaction_amt: float
+
+
+class GetTransactionDTO(BaseDTO):
+    transaction_id: Annotated[int, Field(ge=0, example=1)]

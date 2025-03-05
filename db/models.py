@@ -1,11 +1,11 @@
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 
-from sqlalchemy import DECIMAL, DateTime, Enum, Index, UniqueConstraint
+from sqlalchemy import DECIMAL, DateTime, Index, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class TransactionStatus(StrEnum):
+class TransactionStatus(str, Enum):
     NOT_SYNCHRONIZED = "not_synchronized"
     SYNCHRONIZED = "synchronized"
 
@@ -23,9 +23,7 @@ class Transaction(Base):
     transaction_amt: Mapped[float] = mapped_column(DECIMAL(precision=12, scale=2), nullable=False)
     customer_id: Mapped[int] = mapped_column(nullable=False)
     status: Mapped[TransactionStatus] = mapped_column(
-        Enum(TransactionStatus, name="transaction_status"),
-        nullable=False,
-        default=TransactionStatus.NOT_SYNCHRONIZED,
+        String, nullable=False, default=TransactionStatus.NOT_SYNCHRONIZED
     )
 
 
