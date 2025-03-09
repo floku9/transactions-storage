@@ -1,9 +1,9 @@
+from celery import Celery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.application.dto.transactions import AddTransactionDTO, GetTransactionDTO
-from celery import Celery
-from db.models import Transaction, TransactionStatus
+from db.models import Transaction, TransactionStatus, TransactionSyncStatus
 from settings import celery_settings
 from utils.logging import logger
 
@@ -25,14 +25,17 @@ class TransactionsDBService:
         """
         async with self._db_session.begin():
             transaction_models: list[Transaction] = []
+            transaction_sync_statuses: list[TransactionSyncStatus] = []
+
             for transaction_dto in transactions:
                 model = Transaction(**transaction_dto.model_dump())
-                model.status = TransactionStatus.NOT_SYNCHRONIZED
+                sync_status = TransactionSyncStatus(
+                    transaction=model, status=TransactionStatus.NOT_SYNCHRONIZED
+                )
                 transaction_models.append(model)
+                transaction_sync_statuses.append(sync_status)
 
-            self._db_session.add_all(transaction_models)
-            await self._db_session.flush()
-            await self._db_session.commit()
+            self._db_session.add_all(transaction_models + transaction_sync_statuses)
         logger.info("Successfully added transactions to database")
 
     async def get_many_by_id(self, transaction_ids: list[int]) -> list[GetTransactionDTO]:
@@ -61,9 +64,12 @@ class TransactionsCeleryService:
             celery_id (str): The ID of the Celery task that was created for
                 processing the transactions.
         """
+        tasks_to_send = []
+        for transaction_dto in transactions:
+            tasks_to_send.append(transaction_dto.model_dump())
         task = self._celery.send_task(
             celery_settings.CELERY_PROCESS_TRANSACTIONS_TASK_NAME,
-            args=[tr.model_dump() for tr in transactions],
+            args=[tasks_to_send],
             queue=celery_settings.CELERY_QUEUE_NAME,
         )
         return task.id

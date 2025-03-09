@@ -3,6 +3,7 @@ from typing import Callable
 import uvicorn
 from fastapi import FastAPI, Request, Response
 
+from backend.application.routes.celery_checker import celery_checker_router
 from backend.application.routes.transactions import transactions_router
 from settings import backend_settings
 from utils.logging import logger
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(transactions_router)
+app.include_router(celery_checker_router)
 
 
 @app.middleware("http")

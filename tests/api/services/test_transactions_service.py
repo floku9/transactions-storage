@@ -41,7 +41,7 @@ def test_add_to_celery(
 
         mock_send_task.assert_called_once_with(
             celery_settings.CELERY_PROCESS_TRANSACTIONS_TASK_NAME,
-            args=[i.model_dump() for i in test_transaction_dto],
+            args=[[i.model_dump() for i in test_transaction_dto]],
             queue=celery_settings.CELERY_QUEUE_NAME,
         )
 

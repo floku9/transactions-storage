@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Annotated
 
 from pydantic import Field
@@ -17,3 +18,9 @@ class AddTransactionDTO(BaseDTO):
 
 class GetTransactionDTO(BaseDTO):
     transaction_id: Annotated[int, Field(ge=0, example=1)]
+
+
+class GetBalanceHistoryDTO(BaseDTO):
+    customer_id: int
+    date: date
+    balance_amt: Decimal
